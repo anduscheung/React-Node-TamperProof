@@ -2,11 +2,7 @@
 
 ## Overview
 
-This project implements a secure system designed to ensure data integrity and protect user data exchanged between a frontend client and a backend server. The system leverages encryption and signing techniques using RSA and AES algorithms to safeguard sensitive information. Additionally, it includes mechanisms for data verification and recovery in case of tampering or corruption.
-
-The MVP demonstrates secure encryption and decryption processes, with robust measures to detect tampered data and recover the most recent valid version from the server.
-
-Key Features:
+This project implements a secure system designed to ensure data integrity and protect user data exchanged between a frontend client and a backend server. The system leverages the following key features:
 
 - AES Encryption for secure data transmission.
 - RSA Encryption to protect the AES key during transmission.
@@ -25,45 +21,6 @@ Key Features:
 4. Visit backend database.csv, remove part of the latest data, click save, go to frontend and click "Verify data", you should see previous data
 5. Visit backend database.csv, remove part of the second latest data, go to frontend and click "Verify data", you should see "Data may have been tampered with and no previous data available as fallback"
 6. Remove all lines except the header in the DB, go to frontend and click "Verify data", you should see "No data found"
-
-## if you mistakenly removed the DB or you want to reset the DB:
-
-`npm run create-db` in the backend
-
-## System Functionality and Data Security Mechanisms
-
-**1. How does the client ensure that their data has not been tampered with?**
-
-The client ensures that their data has not been tampered with by leveraging encryption and signature verification techniques. When data are sent from client to server, and vice versa, the following are being performed:
-
-- Encryption: Before sending data to the receiver (whether it is the server or client), the sender encrypts the data using AES encryption with a randomly generated AES key. The AES key itself is then encrypted using the receiver’s RSA public key. This ensures that only the receiver, who possesses the corresponding RSA private key, can decrypt the AES key and retrieve the data.
-- Signature: In addition to encrypting the data, the sender signs the original plaintext data with their private RSA key before sending it. This signature serves as proof of the integrity of the data. The receiver can verify the signature using the sender’s public RSA key. If the data has been tampered with in transit, the signature verification will fail, indicating that the data is not authentic.
-- Decryption: Upon receiving the data, the receiver first decrypts the AES key using their RSA private key. With the decrypted AES key, the receiver can then decrypt the data and retrieve the original content.
-- Signature Verification: After decrypting the data, the receiver verifies the signature using the sender’s public RSA key. If the signature matches, it confirms that the data has not been altered during transmission.
-
-Moreover, when the server receives the data, the server directly stores the encrypted data along with its signature into the database. Later, when the server needs to access the data from the database, it performs the verification process again using the stored credentials. This ensures that even if the data has been tampered with in the database, the server will be able to detect the corruption, preserving the integrity of the system.
-
-**2. If the data has been tampered with, how can the client recover the lost data?**
-
-If the data has been tampered with, the system has a fallback mechanism to recover the lost data:
-
-The server stores data in a mock CSV file database, with each new entry the server creates a new row in the CSV. Client will get the latest row if it click the verify button. If the server detects that the most recent data has been tampered with (through failed signature verification), the server will fallback to the second latest valid entry (if available). The server than responds with the fallback data, informing the client that the latest data was corrupted, and the second last entry was used instead. The frontend displays a message notifying the user if fallback data was used. This alerts the user that the most recent data could not be verified and that the system is using an earlier, valid version of the data. This ensures the user is aware of potential data issues and can take appropriate action if necessary.
-
-By implementing this fallback mechanism, the system ensures that even if data is corrupted or tampered with, the client can always access the last known good version of the data without loss of critical information.
-
-## Possible improvement
-
-### 1. Key management
-
-I have put the RSA keys in a constant file for now, but ideally, in a production environment, the keys should be securely stored in a key management system (KMS) or environment variables to ensure that private keys are never exposed to unauthorized entities. In this setup, all clients share the server’s public key because it’s used for encrypting the AES key and verifying the server’s signature. This allows any client to securely communicate with the server.
-
-However, each client has its own private RSA key, which is unique and used for signing data and decrypting the AES key when receiving data. This ensures that private keys are only accessible to the respective clients and never shared.
-
-In production environments, private keys (for each client) are ideally generated securely on the website or locally and stored on the client’s machine, than the public keys are uploaded to the server.
-
-### 2. Use of native library
-
-For AES encryption and decryption, I used the crypto-js library, which provided a convenient solution for both the client and server. However, it is important to note that the maintainer of this library has stated that they will no longer actively develop it. Ideally, I would prefer to use a more actively maintained solution. That said, I encountered difficulties when attempting to use the native Web Crypto API on the client side for AES decryption. After several attempts and due to time constraints, I resorted to using crypto-js, as it provided a working solution.
 
 ## The complete flow
 
@@ -107,3 +64,42 @@ Scenario: The server retrieves the encrypted data and sends it back to the clien
 3. Decrypt Data: Using the decrypted AES key and IV, the client decrypts the encrypted data to retrieve the original content.
 4. Verify Signature: The client verifies the signature using the client’s public RSA key to ensure that the data has not been tampered with.
 5. Display Data: If the signature is valid, the client displays the decrypted data to the user.
+
+## if you mistakenly removed the DB or you want to reset the DB:
+
+`npm run create-db` in the backend
+
+## System Functionality and Data Security Mechanisms
+
+**1. How does the client ensure that their data has not been tampered with?**
+
+The client ensures that their data has not been tampered with by leveraging encryption and signature verification techniques. When data are sent from client to server, and vice versa, the following are being performed:
+
+- **Encryption**: Before sending data to the receiver (whether it is the server or client), the sender encrypts the data using AES encryption with a randomly generated AES key. The AES key itself is then encrypted using the receiver’s RSA public key. This ensures that only the receiver, who possesses the corresponding RSA private key, can decrypt the AES key and retrieve the data.
+- **Signature**: In addition to encrypting the data, the sender signs the original plaintext data with their private RSA key before sending it. This signature serves as proof of the integrity of the data. The receiver can verify the signature using the sender’s public RSA key. If the data has been tampered with in transit, the signature verification will fail, indicating that the data is not authentic.
+- **Decryption**: Upon receiving the data, the receiver first decrypts the AES key using their RSA private key. With the decrypted AES key, the receiver can then decrypt the data and retrieve the original content.
+- **Signature Verification**: After decrypting the data, the receiver verifies the signature using the sender’s public RSA key. If the signature matches, it confirms that the data has not been altered during transmission.
+
+Moreover, when the server receives the data, the server directly stores the encrypted data along with its signature into the database. Later, when the server needs to access the data from the database, it performs the verification process again using the stored credentials. This ensures that even if the data has been tampered with in the database, the server will be able to detect the corruption, preserving the integrity of the system.
+
+**2. If the data has been tampered with, how can the client recover the lost data?**
+
+If the data has been tampered with, the system has a fallback mechanism to recover the lost data:
+
+The server stores data in a mock CSV database, with each new entry the server creates a new row in the CSV. Client will get the latest row if it click the verify button. If the server detects that the most recent data has been tampered with (through failed signature verification), the server will fallback to the second latest valid entry (if available). The server than responds with the fallback data, informing the client that the latest data was corrupted, and the second last entry was used instead. The frontend displays a message notifying the user if fallback data was used. This alerts the user that the most recent data could not be verified and that the system is using an earlier, valid version of the data. This ensures the user is aware of potential data issues and can take appropriate action if necessary.
+
+By implementing this fallback mechanism, the system ensures that even if data is corrupted or tampered with, the client can always access the last known good version of the data without loss of critical information.
+
+## Possible improvement
+
+### 1. Key management
+
+The RSA keys are put in a constant file for now, but ideally, in a production environment, the keys should be securely stored in a key management system (KMS) or environment variables to ensure that private keys are never exposed to unauthorized entities. In this setup, all clients share the server’s public key because it’s used for encrypting the AES key and verifying the server’s signature. This allows any client to securely communicate with the server.
+
+However, each client has its own private RSA key, which is unique and used for signing data and decrypting the AES key when receiving data. This ensures that private keys are only accessible to the respective clients and never shared.
+
+In production environments, private keys (for each client) are ideally generated securely on the website or locally and stored on the client’s machine, than the public keys are uploaded to the server.
+
+### 2. Use of native library
+
+The project uses the crypto-js library for AES encryption and decryption, which provided a convenient solution for both the client and server. However, it is important to note that the maintainer of this library has stated that they will no longer actively develop it. Ideally, I would prefer to use a more actively maintained solution. That said, I encountered difficulties when attempting to use the native Web Crypto API on the client side for AES decryption. Due to time constraints, I resorted to using crypto-js, as it provided a working solution.
