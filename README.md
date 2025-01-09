@@ -1,5 +1,9 @@
 # A Minimum Viable Product (MVP) for a tamper-proof system using React, Node.js, and TypeScript to prevent unauthorized data breaches.
 
+## Background
+
+This was a take-home challenge for a full-stack developer position to be completed within one day. The goal was to showcase a secure system that prevents unauthorized data breaches by ensuring the integrity, confidentiality, and authenticity of data exchanged between a frontend client and a backend server.
+
 ## Overview
 
 This project implements a secure system designed to ensure data integrity and protect user data exchanged between a frontend client and a backend server. The system leverages the following key features:
