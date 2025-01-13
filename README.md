@@ -22,7 +22,7 @@ This project implements a secure system designed to ensure data integrity and pr
 1. Click verify Data, you should see "If I die, my money give to Andus"
 2. Make some changes in the text input and click send data, window should prompt "ok", meaning data sent to server
 3. Click Verify Data, window should prompt the latest data
-4. Visit backend database.csv, remove part of the latest data, click save, go to frontend and click "Verify data", you should see previous data
+4. Visit backend database.csv, remove part of the latest data, click save, go to frontend and click "Verify data", you should see previous data because when tempering is detected the system will fallback to the latest non tempered data
 5. Visit backend database.csv, remove part of the second latest data, go to frontend and click "Verify data", you should see "Data may have been tampered with and no previous data available as fallback"
 6. Remove all lines except the header in the DB, go to frontend and click "Verify data", you should see "No data found"
 
